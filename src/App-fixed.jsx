@@ -1,7 +1,4 @@
 import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button.jsx'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card.jsx'
-import { Badge } from '@/components/ui/badge.jsx'
 import { TrendingUp, TrendingDown, BarChart3, Calendar, Users, BookOpen, Search, Bell } from 'lucide-react'
 import './App.css'
 
@@ -32,6 +29,77 @@ function App() {
       .then(data => setNewsData(data))
       .catch(error => console.error('Error fetching news data:', error));
   }, []);
+
+  // Simple Button Component
+  const Button = ({ children, variant = 'default', size = 'md', className = '', onClick, ...props }) => {
+    const baseClasses = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none';
+    const variants = {
+      default: 'bg-blue-600 text-white hover:bg-blue-700',
+      outline: 'border border-gray-600 text-gray-300 hover:bg-gray-800',
+      ghost: 'hover:bg-gray-800 text-gray-300'
+    };
+    const sizes = {
+      sm: 'h-8 px-3 text-sm',
+      md: 'h-10 px-4',
+      lg: 'h-12 px-8 text-lg'
+    };
+    
+    return (
+      <button 
+        className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`}
+        onClick={onClick}
+        {...props}
+      >
+        {children}
+      </button>
+    );
+  };
+
+  // Simple Card Components
+  const Card = ({ children, className = '' }) => (
+    <div className={`rounded-lg border bg-card text-card-foreground shadow-sm ${className}`}>
+      {children}
+    </div>
+  );
+
+  const CardHeader = ({ children, className = '' }) => (
+    <div className={`flex flex-col space-y-1.5 p-6 ${className}`}>
+      {children}
+    </div>
+  );
+
+  const CardTitle = ({ children, className = '' }) => (
+    <h3 className={`text-2xl font-semibold leading-none tracking-tight ${className}`}>
+      {children}
+    </h3>
+  );
+
+  const CardDescription = ({ children, className = '' }) => (
+    <p className={`text-sm text-muted-foreground ${className}`}>
+      {children}
+    </p>
+  );
+
+  const CardContent = ({ children, className = '' }) => (
+    <div className={`p-6 pt-0 ${className}`}>
+      {children}
+    </div>
+  );
+
+  // Simple Badge Component
+  const Badge = ({ children, variant = 'default', className = '' }) => {
+    const variants = {
+      default: 'bg-green-600 text-white',
+      destructive: 'bg-red-600 text-white',
+      outline: 'border border-gray-600 text-gray-300'
+    };
+    
+    return (
+      <div className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors ${variants[variant]} ${className}`}>
+        {children}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 text-white">
@@ -123,10 +191,10 @@ function App() {
             منصتك الشاملة للتداول والاستثمار في الأسواق العربية والعالمية. تابع الأسواق، احصل على التحليلات، وتعلم من الخبراء
           </p>
           <div className="flex justify-center space-x-reverse space-x-4">
-            <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+            <Button size="lg">
               ابدأ التداول الآن
             </Button>
-            <Button size="lg" variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-800">
+            <Button size="lg" variant="outline">
               تعلم المزيد
             </Button>
           </div>
@@ -149,7 +217,6 @@ function App() {
                     <span className="text-2xl font-bold text-white">{market.value}</span>
                     <Badge 
                       variant={market.isPositive ? "default" : "destructive"}
-                      className={market.isPositive ? "bg-green-600" : "bg-red-600"}
                     >
                       {market.change}
                     </Badge>
@@ -210,7 +277,7 @@ function App() {
                       <h3 className="text-white font-medium mb-1">{news.title}</h3>
                       <p className="text-gray-400 text-sm">{news.time}</p>
                     </div>
-                    <Badge variant="outline" className="border-gray-600 text-gray-300">
+                    <Badge variant="outline">
                       جديد
                     </Badge>
                   </div>
@@ -318,6 +385,4 @@ function App() {
 }
 
 export default App
-
-
 
