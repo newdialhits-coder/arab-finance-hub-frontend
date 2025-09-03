@@ -1,36 +1,70 @@
 import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button.jsx'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card.jsx'
-import { Badge } from '@/components/ui/badge.jsx'
-import { TrendingUp, TrendingDown, BarChart3, Calendar, Users, BookOpen, Search, Bell } from 'lucide-react'
+import { TrendingUp, TrendingDown, BarChart3, Calendar, Search, Bell } from 'lucide-react'
 import './App.css'
 
 function App() {
-  const [activeTab, setActiveTab] = useState('dashboard')
   const [marketData, setMarketData] = useState([])
   const [cryptoData, setCryptoData] = useState([])
   const [newsData, setNewsData] = useState([])
+  const [loading, setLoading] = useState(true)
 
   const API_BASE_URL = 'https://arab-finance-hub-backend.onrender.com';
 
   useEffect(() => {
-    // Fetch Market Data
-    fetch(`${API_BASE_URL}/api/markets/arab`)
-      .then(response => response.json())
-      .then(data => setMarketData(data))
-      .catch(error => console.error('Error fetching market data:', error));
+    const fetchData = async () => {
+      try {
+        // Fetch Market Data
+        const marketResponse = await fetch(`${API_BASE_URL}/api/markets/arab`);
+        if (marketResponse.ok) {
+          const marketResult = await marketResponse.json();
+          if (marketResult.success && marketResult.data) {
+            const markets = Object.values(marketResult.data).map(market => ({
+              name: market.name,
+              value: market.current_value.toLocaleString(),
+              change: `${market.change_percent > 0 ? '+' : ''}${market.change_percent.toFixed(2)}%`,
+              isPositive: market.is_positive
+            }));
+            setMarketData(markets);
+          }
+        }
 
-    // Fetch Crypto Data
-    fetch(`${API_BASE_URL}/api/markets/crypto`)
-      .then(response => response.json())
-      .then(data => setCryptoData(data))
-      .catch(error => console.error('Error fetching crypto data:', error));
+        // Fetch Crypto Data
+        const cryptoResponse = await fetch(`${API_BASE_URL}/api/markets/crypto`);
+        if (cryptoResponse.ok) {
+          const cryptoResult = await cryptoResponse.json();
+          if (cryptoResult.success && cryptoResult.data) {
+            const cryptos = Object.values(cryptoResult.data).map(crypto => ({
+              name: crypto.name,
+              symbol: crypto.symbol,
+              value: `$${crypto.current_value.toLocaleString()}`,
+              change: `${crypto.change_percent > 0 ? '+' : ''}${crypto.change_percent.toFixed(2)}%`,
+              isPositive: crypto.is_positive
+            }));
+            setCryptoData(cryptos);
+          }
+        }
 
-    // Fetch News Data
-    fetch(`${API_BASE_URL}/api/news/financial`)
-      .then(response => response.json())
-      .then(data => setNewsData(data))
-      .catch(error => console.error('Error fetching news data:', error));
+        // Fetch News Data
+        const newsResponse = await fetch(`${API_BASE_URL}/api/news/financial`);
+        if (newsResponse.ok) {
+          const newsResult = await newsResponse.json();
+          if (newsResult.success && newsResult.data) {
+            const news = newsResult.data.map(item => ({
+              title: item.title,
+              time: new Date(item.published_at).toLocaleString('ar-SA')
+            }));
+            setNewsData(news);
+          }
+        }
+
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   return (
@@ -39,74 +73,36 @@ function App() {
       <nav className="bg-slate-800/50 backdrop-blur-sm border-b border-slate-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-reverse space-x-4">
-              <div className="flex items-center">
-                <BarChart3 className="h-8 w-8 text-blue-400 ml-2" />
-                <span className="text-xl font-bold">منصة المال العربي</span>
-              </div>
+            <div className="flex items-center">
+              <BarChart3 className="h-8 w-8 text-blue-400 ml-2" />
+              <span className="text-xl font-bold">منصة المال العربي</span>
             </div>
             
             <div className="hidden md:flex items-center space-x-reverse space-x-6">
-              <button 
-                onClick={() => setActiveTab('dashboard')}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === 'dashboard' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:text-white'
-                }`}
-              >
+              <button className="px-3 py-2 rounded-md text-sm font-medium bg-blue-600 text-white">
                 لوحة التحكم
               </button>
-              <button 
-                onClick={() => setActiveTab('markets')}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === 'markets' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:text-white'
-                }`}
-              >
+              <button className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white">
                 الأسواق
               </button>
-              <button 
-                onClick={() => setActiveTab('analysis')}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === 'analysis' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:text-white'
-                }`}
-              >
+              <button className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white">
                 التحليلات
               </button>
-              <button 
-                onClick={() => setActiveTab('calendar')}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === 'calendar' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:text-white'
-                }`}
-              >
+              <button className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white">
                 التقويم الاقتصادي
-              </button>
-              <button 
-                onClick={() => setActiveTab('community')}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === 'community' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:text-white'
-                }`}
-              >
-                المجتمع
-              </button>
-              <button 
-                onClick={() => setActiveTab('education')}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === 'education' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:text-white'
-                }`}
-              >
-                التعليم
               </button>
             </div>
 
             <div className="flex items-center space-x-reverse space-x-4">
-              <Button variant="ghost" size="sm">
+              <button className="p-2 text-gray-300 hover:text-white">
                 <Search className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm">
+              </button>
+              <button className="p-2 text-gray-300 hover:text-white">
                 <Bell className="h-4 w-4" />
-              </Button>
-              <Button variant="default" size="sm">
+              </button>
+              <button className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium">
                 تسجيل الدخول
-              </Button>
+              </button>
             </div>
           </div>
         </div>
@@ -123,142 +119,128 @@ function App() {
             منصتك الشاملة للتداول والاستثمار في الأسواق العربية والعالمية. تابع الأسواق، احصل على التحليلات، وتعلم من الخبراء
           </p>
           <div className="flex justify-center space-x-reverse space-x-4">
-            <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+            <button className="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-lg text-lg font-medium">
               ابدأ التداول الآن
-            </Button>
-            <Button size="lg" variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-800">
+            </button>
+            <button className="border border-gray-600 text-gray-300 hover:bg-gray-800 px-8 py-3 rounded-lg text-lg font-medium">
               تعلم المزيد
-            </Button>
+            </button>
           </div>
         </div>
 
-        {/* الأسواق الرئيسية */}
-        <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-6 flex items-center">
-            <TrendingUp className="ml-2 h-6 w-6 text-green-400" />
-            الأسواق العربية
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {marketData.map((market, index) => (
-              <Card key={index} className="bg-slate-800/50 border-slate-700 hover:bg-slate-800/70 transition-colors">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg text-white">{market.name}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex justify-between items-center">
-                    <span className="text-2xl font-bold text-white">{market.value}</span>
-                    <Badge 
-                      variant={market.isPositive ? "default" : "destructive"}
-                      className={market.isPositive ? "bg-green-600" : "bg-red-600"}
-                    >
-                      {market.change}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+        {loading ? (
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
+            <p className="text-xl mt-4">جاري تحميل البيانات...</p>
           </div>
-        </section>
-
-        {/* العملات المشفرة */}
-        <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-6 flex items-center">
-            <BarChart3 className="ml-2 h-6 w-6 text-yellow-400" />
-            العملات المشفرة
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {cryptoData.map((crypto, index) => (
-              <Card key={index} className="bg-slate-800/50 border-slate-700 hover:bg-slate-800/70 transition-colors">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg text-white flex items-center justify-between">
-                    {crypto.name}
-                    <span className="text-sm text-gray-400">{crypto.symbol}</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xl font-bold text-white">{crypto.value}</span>
-                    <div className="flex items-center">
-                      {crypto.isPositive ? (
-                        <TrendingUp className="h-4 w-4 text-green-400 ml-1" />
-                      ) : (
-                        <TrendingDown className="h-4 w-4 text-red-400 ml-1" />
-                      )}
-                      <span className={crypto.isPositive ? "text-green-400" : "text-red-400"}>
-                        {crypto.change}
+        ) : (
+          <>
+            {/* الأسواق العربية */}
+            <section className="mb-12">
+              <h2 className="text-2xl font-bold mb-6 flex items-center">
+                <TrendingUp className="ml-2 h-6 w-6 text-green-400" />
+                الأسواق العربية
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {marketData.map((market, index) => (
+                  <div key={index} className="bg-slate-800/50 border border-slate-700 rounded-lg p-6 hover:bg-slate-800/70 transition-colors">
+                    <h3 className="text-lg font-semibold mb-2 text-white">{market.name}</h3>
+                    <div className="flex justify-between items-center">
+                      <span className="text-2xl font-bold text-white">{market.value}</span>
+                      <span className={`px-2 py-1 rounded text-sm font-medium ${
+                        market.isPositive ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+                      }`}>
+                        {market.change}
                       </span>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
+                ))}
+              </div>
+            </section>
 
-        {/* الأخبار المالية */}
-        <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-6 flex items-center">
-            <Calendar className="ml-2 h-6 w-6 text-purple-400" />
-            آخر الأخبار المالية
-          </h2>
-          <Card className="bg-slate-800/50 border-slate-700">
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                {newsData.map((news, index) => (
-                  <div key={index} className="flex justify-between items-start p-4 rounded-lg bg-slate-700/50 hover:bg-slate-700/70 transition-colors cursor-pointer">
-                    <div>
-                      <h3 className="text-white font-medium mb-1">{news.title}</h3>
-                      <p className="text-gray-400 text-sm">{news.time}</p>
+            {/* العملات المشفرة */}
+            <section className="mb-12">
+              <h2 className="text-2xl font-bold mb-6 flex items-center">
+                <BarChart3 className="ml-2 h-6 w-6 text-yellow-400" />
+                العملات المشفرة
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {cryptoData.map((crypto, index) => (
+                  <div key={index} className="bg-slate-800/50 border border-slate-700 rounded-lg p-6 hover:bg-slate-800/70 transition-colors">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="text-lg font-semibold text-white">{crypto.name}</h3>
+                      <span className="text-sm text-gray-400">{crypto.symbol}</span>
                     </div>
-                    <Badge variant="outline" className="border-gray-600 text-gray-300">
-                      جديد
-                    </Badge>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xl font-bold text-white">{crypto.value}</span>
+                      <div className="flex items-center">
+                        {crypto.isPositive ? (
+                          <TrendingUp className="h-4 w-4 text-green-400 ml-1" />
+                        ) : (
+                          <TrendingDown className="h-4 w-4 text-red-400 ml-1" />
+                        )}
+                        <span className={crypto.isPositive ? "text-green-400" : "text-red-400"}>
+                          {crypto.change}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        </section>
+            </section>
+
+            {/* الأخبار المالية */}
+            <section className="mb-12">
+              <h2 className="text-2xl font-bold mb-6 flex items-center">
+                <Calendar className="ml-2 h-6 w-6 text-purple-400" />
+                آخر الأخبار المالية
+              </h2>
+              <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
+                <div className="space-y-4">
+                  {newsData.map((news, index) => (
+                    <div key={index} className="flex justify-between items-start p-4 rounded-lg bg-slate-700/50 hover:bg-slate-700/70 transition-colors cursor-pointer">
+                      <div>
+                        <h3 className="text-white font-medium mb-1">{news.title}</h3>
+                        <p className="text-gray-400 text-sm">{news.time}</p>
+                      </div>
+                      <span className="px-2 py-1 border border-gray-600 text-gray-300 rounded text-xs">
+                        جديد
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          </>
+        )}
 
         {/* الميزات الرئيسية */}
         <section className="mb-12">
           <h2 className="text-2xl font-bold mb-6 text-center">لماذا منصة المال العربي؟</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="bg-slate-800/50 border-slate-700 text-center">
-              <CardHeader>
-                <BarChart3 className="h-12 w-12 text-blue-400 mx-auto mb-4" />
-                <CardTitle className="text-white">تحليلات متقدمة</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-gray-300">
-                  احصل على تحليلات فنية وأساسية شاملة من خبراء الأسواق العربية
-                </CardDescription>
-              </CardContent>
-            </Card>
+            <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6 text-center">
+              <BarChart3 className="h-12 w-12 text-blue-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-4 text-white">تحليلات متقدمة</h3>
+              <p className="text-gray-300">
+                احصل على تحليلات فنية وأساسية شاملة من خبراء الأسواق العربية
+              </p>
+            </div>
 
-            <Card className="bg-slate-800/50 border-slate-700 text-center">
-              <CardHeader>
-                <Users className="h-12 w-12 text-green-400 mx-auto mb-4" />
-                <CardTitle className="text-white">مجتمع تفاعلي</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-gray-300">
-                  انضم إلى مجتمع المتداولين العرب وشارك الخبرات والاستراتيجيات
-                </CardDescription>
-              </CardContent>
-            </Card>
+            <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6 text-center">
+              <TrendingUp className="h-12 w-12 text-green-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-4 text-white">مجتمع تفاعلي</h3>
+              <p className="text-gray-300">
+                انضم إلى مجتمع المتداولين العرب وشارك الخبرات والاستراتيجيات
+              </p>
+            </div>
 
-            <Card className="bg-slate-800/50 border-slate-700 text-center">
-              <CardHeader>
-                <BookOpen className="h-12 w-12 text-purple-400 mx-auto mb-4" />
-                <CardTitle className="text-white">تعليم شامل</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-gray-300">
-                  تعلم التداول والاستثمار من الصفر مع دورات تعليمية متخصصة
-                </CardDescription>
-              </CardContent>
-            </Card>
+            <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6 text-center">
+              <Calendar className="h-12 w-12 text-purple-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-4 text-white">تعليم شامل</h3>
+              <p className="text-gray-300">
+                تعلم التداول والاستثمار من الصفر مع دورات تعليمية متخصصة
+              </p>
+            </div>
           </div>
         </section>
       </main>
@@ -318,6 +300,4 @@ function App() {
 }
 
 export default App
-
-
 
